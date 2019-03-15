@@ -112,6 +112,10 @@ def perception_step(Rover):
     # Update Rover pixel distances and angles
         # Rover.nav_dists = rover_centric_pixel_distances
         # Rover.nav_angles = rover_centric_angles
+    
+    # rock found wait until stop
+
+    
     dst_size = 5
     bottom_offset = 6
     image = Rover.img
@@ -148,22 +152,13 @@ def perception_step(Rover):
     Rover.nav_angles = angles
 
     rock_map = find_rocks(warped, (110, 110, 50))
-    print(rock_map.any())
-    if Rover.mode == "stop":
-        Rover.stop_mode_count +=1
-    
-    if Rover.stop_mode_count < 100:
-        Rover.mode = "forward"
-    else:
-        Rover.stop_mode_count = 0
-        Rover.mode = "stucked"
 
-
-    Rover.found = False
+    if Rover.found == True:
+        return Rover
     if rock_map.any():
-        if Rover.vel > 0:
-            Rover.mode = "rock_found"
 
+        Rover.mode = "found_rock"
+        Rover.found = True
         rock_x, rock_y = rover_coords(rock_map)
         rock_x_world, rock_y_world =  pix_to_world(rock_x, rock_y, Rover.pos[0], Rover.pos[1],
             Rover.yaw, world_size, scale)
@@ -175,14 +170,8 @@ def perception_step(Rover):
         rock_xcen = rock_x_world[rock_idx]
         rock_ycen = rock_y_world[rock_idx]
         pos_rock = (rock_xcen, rock_ycen)
+        Rover.rock_pos = pos_rock
         Rover.rock_dist = rock_dist
         Rover.rock_ang = rock_ang
-        if Rover.vel == 0 and rock_ang[-1] > 0:
-            Rover.mode = 'turn_right'
-        if Rover.vel == 0 and rock_ang[-1] < 0:
-            Rover.mode = 'turn_left'
-        if rock_ang[-1] < 0.1 and rock_ang[-1] > -0.1:
-            Rover.mode = 'pick_up_rock'
 
-        print("update rock pos")
     return Rover 

@@ -17,8 +17,6 @@ def decision_step(Rover, data):
         if Rover.mode == 'forward':
             # check if stucked throttle > 0 and no pos change
             if (Rover.vel <= 0.1) & (Rover.throttle > 0):
-                print(Rover.pos)
-                print(Rover.pos_old)
                 if(int(Rover.pos[0]) == int(Rover.pos_old[0])) & (int(Rover.pos[1]) == int(Rover.pos_old[1])):
                    Rover.stucked_counter += 1
                    if Rover.stucked_counter >= 20:
@@ -76,16 +74,24 @@ def decision_step(Rover, data):
                     # Set steer to mean angle
                     Rover.steer = np.clip(np.mean(Rover.nav_angles * 180/np.pi), -15, 15)
                     Rover.mode = 'forward'
+        
         elif Rover.mode == 'stucked':
-            print("get unstucked")
+            if Rover.vel > 0:
+                Rover.mode = "forward"
         
         elif Rover.mode == 'pick_up_rock':
+            print("pick up rock", Rover.rock_dist[-1])
+            print("rock angle", Rover.rock_ang[-1])
             Rover.steer = 0
-            Rover.brake = 10
-            # drive to rock
-            
-            print("pick up rock")
-            return Rover 
+            print("pick up rock", Rover.rock_dist[-1])
+            Rover.steer = 0
+            Rover.brake = 0
+            Rover.throttle = 0.005 * Rover.rock_dist[-1]
+            print(Rover.throttle)
+            # drive to rock and brake if close
+            if Rover.rock_dist[-1] < 4:
+                print("brake")
+                Rover.brake = 10
 
         
         elif Rover.mode == 'turn_right':
@@ -103,8 +109,9 @@ def decision_step(Rover, data):
             # rover is not facing the right direction
             # stop the rover and turn
             Rover.throttle = 0
-            Rover.brake = Rover.brake_set
+            Rover.brake = 20
             Rover.steer = 0
+
 
     # Just to make the rover do something 
     # even if no modifications have been made to the code
@@ -115,7 +122,9 @@ def decision_step(Rover, data):
         
     # If in a state where want to pickup a rock send pickup command
     if Rover.near_sample and Rover.vel == 0 and not Rover.picking_up:
+        Rover.brake = 10
         Rover.send_pickup = True
-    print('mode', Rover.mode)
+        Rover.rock_pos = None      # set back to find new
+        Rover.found = False        # search for new rock 
     return Rover
 

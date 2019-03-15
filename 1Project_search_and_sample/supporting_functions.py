@@ -51,7 +51,7 @@ def update_rover(Rover, data):
       # Update number of rocks collected
       Rover.samples_collected = Rover.samples_to_find - np.int(data["sample_count"])
       global old 
-      if abs(int(time.time())-old) >=10:
+      if abs(int(time.time())-old) >=10000:
           old = int(time.time()) 
           print('speed =',Rover.vel, 'position =', Rover.pos, 'throttle =', 
                   Rover.throttle, 'steer_angle =', Rover.steer, 'near_sample:', Rover.near_sample, 
